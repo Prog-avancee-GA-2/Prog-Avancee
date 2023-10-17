@@ -7,7 +7,7 @@
 using namespace std;
 
 //mutex to protect passenger and car
-mutex mut1, mut2;
+mutex mut1, mut2, mut3, mut4;
 counting_semaphore boardQueue{0}, unboardQueue{0}, allAboard{0}, allAshore{0};
 // number of people in the car while boarding
 int boarders = 0;
@@ -48,7 +48,11 @@ void car(){
 
 void passenger(int id){
     // Wait for the car before boarding
-    boardQueue.acquire();
+    {
+        // Allow only one passenger to go in the car at the time 
+        lock_guard<mutex> lock(mut3);
+        boardQueue.acquire();
+    }
 
     // Using mut1 to lock the ressources of the content below
     {
@@ -66,7 +70,11 @@ void passenger(int id){
         }
     }
     // Wait for the car to stop before leaving
-    unboardQueue.acquire();
+    {
+        // Allow only one passenger to left the car at the time 
+        lock_guard<mutex> lock(mut3);
+        unboardQueue.acquire();
+    }
 
     // Using mut2 to lock the ressources of the content below
     {
